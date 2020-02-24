@@ -10,13 +10,14 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 
 ## JSON Data
 We have imported two types of json files which are used by the python scripts of this project.
+
 ### Activities data (used by Import-and-prepare-activity-organisation-data.py) ###
 
 Run the following command that will pull the activities json data from the IATI cloud store.
 
 `$ wget -O all-activities.json "https://iati.cloud/search/activity?q=dataset_iati_version:"2.*"&fl=dataset_iati_version,participating_org,iati_identifier,reporting_org_*,title_*,description_*,participating_org_*,activity_status_code,related_activity_*,related_activity_ref,activity_date_*,hierarchy&wt=json&rows=5000000"`
 
-### Transactions data (used by Prepare-transaction-csv.py) ###
+### Transactions data (used by Prepare-transaction-csv.py) ###
 
 Run the following command that will pull the transactions csv data from the IATI cloud store.
 
