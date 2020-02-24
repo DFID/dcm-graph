@@ -7,7 +7,7 @@ activities_from_json = {}
 
 #api call: wget -O dfid-sample.json "https://iati.cloud/search/activity?q=dataset_iati_version:"2.*"&fl=dataset_iati_version,participating_org,iati_identifier,reporting_org_*,title_*,description_*,participating_org_*,activity_status_code,related_activity_*,related_activity_ref,activity_date_*,hierarchy&wt=json&rows=5000000"
 #https://iati.cloud/search/transaction?q=*:*&fl=transaction_type,transaction_value,transaction_value_currency,reporting_org_narrative,iati_identifier,transaction_value_currency,transaction_provider_org_provider_activity_id,transaction_provider_org_ref,transaction_provider_org_narrative,transaction_receiver_org_receiver_activity_id,transaction_receiver_org_ref,transaction_receiver_org_narrative&wt=csv&rows=1000000
-with open('all-activities-v2.json') as json_file:
+with open('all-activities.json') as json_file:
 	activities_from_json = json.load(json_file)
 
 #Main item stores
