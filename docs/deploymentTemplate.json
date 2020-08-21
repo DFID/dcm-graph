@@ -1,0 +1,87 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "containerGroups_iatigraph_name": {
+            "defaultValue": "iatigraph",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.ContainerInstance/containerGroups",
+            "apiVersion": "2018-10-01",
+            "name": "[parameters('containerGroups_iatigraph_name')]",
+            "location": "eastus",
+            "tags": {
+                "rs_category": "DCM"
+            },
+            "properties": {
+                "containers": [
+                    {
+                        "name": "[parameters('containerGroups_iatigraph_name')]",
+                        "properties": {
+                            "image": "neo4j:3.5-enterprise",
+                            "ports": [
+                                {
+                                    "protocol": "TCP",
+                                    "port": 80
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 7473
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 7474
+                                },
+                                {
+                                    "protocol": "TCP",
+                                    "port": 7687
+                                }
+                            ],
+                            "environmentVariables": [
+                                {
+                                    "name": "NEO4J_ACCEPT_LICENSE_AGREEMENT",
+                                    "value": "yes"
+                                }
+                            ],
+                            "resources": {
+                                "requests": {
+                                    "memoryInGB": 3.5,
+                                    "cpu": 2
+                                }
+                            }
+                        }
+                    }
+                ],
+                "restartPolicy": "OnFailure",
+                "ipAddress": {
+                    "ports": [
+                        {
+                            "protocol": "TCP",
+                            "port": 80
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 7473
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 7474
+                        },
+                        {
+                            "protocol": "TCP",
+                            "port": 7687
+                        }
+                    ],
+                    "ip": "52.188.39.145",
+                    "type": "Public",
+                    "dnsNameLabel": "[parameters('containerGroups_iatigraph_name')]"
+                },
+                "osType": "Linux"
+            }
+        }
+    ]
+}
