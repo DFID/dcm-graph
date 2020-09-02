@@ -6,22 +6,33 @@ This repository is created to store a research work for visualising delivery cha
 Our main goal for this project is to create a prototype Graph Database of International Aid Transparency Initiative (IATI) data in establishing a connection between DFID and a supplier of interest beyond immediate project funding. To do this, we have prepared a python script to import data from the [IATI store](https://iati.cloud) and prepare the necessary CSV files of Nodes and relationships for importing into a neo4j instance. 
 
 ## Get started
-[Development environment preparation](https://github.com/DFID/dcm-graph/wiki)
 
-## JSON Data
-We have imported two types of json files which are used by the python scripts of this project.
+### Prerequisites and Assumptions
 
-### Activities data (used by Import-and-prepare-activity-organisation-data.py) ###
+* An running instance of Neo4j at version 3.5. This has been tested on a trial instance of the enterprise edition, but may well work on the commercial edition too
+* A separate server or development machine with fast and non-firewalled internet and a good amount of RAM available (>8GB if a server, even higher if a laptop with lots of competing tasks). This has been tested using an Azure Ubuntu Box with a download speed.
+* Python3 for processing and serving the CSVs for Neo4J to import.
+* Tmux to run long downloads or processing requests on a remote box without a broken pipe halting the process.
 
-Run the following command that will pull the activities json data from the IATI cloud store.
+### High-Level Process
 
-`$ wget -O all-activities.json "https://iati.cloud/search/activity?q=dataset_iati_version:"2.*"&fl=dataset_iati_version,participating_org,iati_identifier,reporting_org_ref,reporting_org_narrative,title_narrative,description,participating_org,activity_status_code,related_activity_type,related_activity_ref,activity_date_start_*,activity_date_end_*,hierarchy&wt=json&rows=5000000"`
+> This assumes a fresh Ubuntu 18 box
 
-### Transactions data (used by Prepare-transaction-csv.py) ###
+1. SSH or use VS Code's Remote Extension to enter your desired environment, clone this repository, and cd into it.
+2. Run `sudo sh setup.sh` to install requirements.
+3. Optional if ssh in a remote box: create a new tmux session and enter into it if you want to ensure that a download will continue if you're disconnected.
+4. Run `sh get_iati.sh`
+   * Note that as of the 2nd of September 2019, the activity file is 1.88GB requiring 5 minutes to download at 6.9MB/s and the transaction file is 623MB, requiring 2:45 at the same speed. This is why running from an azure box is preferable, as it leverages Microsoft's punchy down-speed!
+5. run `python3 Import-and-prepare-activity-organisation-data.py`
+6. run `python3 Prepare-transaction-csv.py`
 
-Run the following command that will pull the transactions csv data from the IATI cloud store.
 
-`$ wget -O transactions.csv "https://iati.cloud/search/transaction?q=*:*&fl=transaction_type,transaction_value,transaction_value_currency,reporting_org_narrative,iati_identifier,transaction_value_currency,transaction_provider_org_provider_activity_id,transaction_provider_org_ref,transaction_provider_org_narrative,transaction_receiver_org_receiver_activity_id,transaction_receiver_org_ref,transaction_receiver_org_narrative&wt=csv&rows=10000000"`
+## IATI Data
+We have imported two types of files which are used by the python scripts of this project - both very large.
+
+The first is a JSON file containing all IATI Activities, the second a CSV file containing all transactions.
+
+[get_iati.sh](get_iati.sh) is a script which runs a `wget` command for each, using pre-defined urls.
 
 ### Interacting with Neo4J
 
