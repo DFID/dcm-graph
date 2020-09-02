@@ -31,17 +31,31 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 6. run `python3 Prepare-transaction-csv.py`
 7. cd into data and run `sudo python3 -m http.server 80`. This will server a temporary http server from the data directory, allowing the Neo4J instance to access the files for import.
    * note that port 80 must be exposed for this to work!
-8. Run Neo4J import processes with your chosen instance (see 'Interacting with Neo4J') `neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687` (ideally this is done in a tmux session, as it takes hours.)
+8. Run Neo4J import processes with your chosen instance (see 'Interacting with Neo4J') `neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687` (ideally this is done in a tmux session, as **it takes hours**.)
 
 
-## IATI Data
-We have imported two types of files which are used by the python scripts of this project - both very large.
+## Detailed Components
+
+### IATI Data Getter
+We have imported two types of files which are used by the python scripts of this project - both very large. They are pulled from the [IATI store data](https://iati.cloud) using pre-defined queries that can be viewed in the shell scripted linked below.
 
 The first is a JSON file containing all IATI Activities, the second a CSV file containing all transactions.
 
 [get_iati.sh](get_iati.sh) is a script which runs a `wget` command for each, using pre-defined urls.
 
+### Data Wrangling in Python
+
+Two python scripts do the work of processing the data in to normalised CSVs that are ready for import into Neo4J:
+* [Import-and-prepare-activity-organisation-data.py](Import-and-prepare-activity-organisation-data.py)
+    * Requires a huge amount of RAM (32GB when last tested)
+    * Executes relatively quickly if it doesn't crash.
+
+* [Prepare-transaction-csv.py](Prepare-transaction-csv.py)
+    * Operates much more quickly and requires less power.
+
 ### Interacting with Neo4J
+
+Using [neo4j-client](https://neo4j-client.net/).
 
 > Note! This only works with Neo4j 3.5 - not 4.x
 
@@ -57,4 +71,4 @@ Inline queries can be run directly from sh commands like this:
 neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687
 ```
 
-**TODO**: iterate over [CQL-query-oneshot.cql](CQL-query-oneshot.cql), or chunk into separate files in the [/cypher](/cyper) folder to automate population.
+If the file after the `-i` argument is a set of distinct, semi-colon separated cypher commands (as is the case in the file used), this command will iterate over each of them and eventually output a report to the `-o` file.
