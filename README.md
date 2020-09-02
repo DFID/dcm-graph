@@ -10,7 +10,7 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 ### Prerequisites and Assumptions
 
 * An running instance of Neo4j at version 3.5. This has been tested on a trial instance of the enterprise edition, but may well work on the commercial edition too
-* A separate server or development machine with fast and non-firewalled internet and a good amount of RAM available (>8GB if a server, even higher if a laptop with lots of competing tasks). This has been tested using an Azure Ubuntu Box with a download speed.
+* A separate server or development machine with fast and non-firewalled internet and a LOT of RAM available. This required 32GB of RAM to avoid killing the process in the most recent testing has been tested using an Azure Ubuntu Box with a download speed.
 * Python3 for processing and serving the CSVs for Neo4J to import.
 * Tmux to run long downloads or processing requests on a remote box without a broken pipe halting the process.
 
@@ -23,8 +23,10 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 3. Optional if ssh in a remote box: create a new tmux session and enter into it if you want to ensure that a download will continue if you're disconnected.
 4. Run `sh get_iati.sh`
    * Note that as of the 2nd of September 2019, the activity file is 1.88GB requiring 5 minutes to download at 6.9MB/s and the transaction file is 623MB, requiring 2:45 at the same speed. This is why running from an azure box is preferable, as it leverages Microsoft's punchy down-speed!
-5. run `python3 Import-and-prepare-activity-organisation-data.py`
+5. run `python3 Import-and-prepare-activity-organisation-data.py` (see 'IATI Data' below)
 6. run `python3 Prepare-transaction-csv.py`
+7. cd into data and run `sudo python3 -m http.server 80`. This will server a temporary http server from the data directory, allowing the Neo4J instance to access the files for import.
+8. **TODO** Run Neo4J import processes (still to be finalised) with your chosen instance.
 
 
 ## IATI Data
@@ -38,6 +40,16 @@ The first is a JSON file containing all IATI Activities, the second a CSV file c
 
 > Note! This only works with Neo4j 3.5 - not 4.x
 
+Interactive query running can be done via terminal as follows: 
+
 ```sh
-sudo apt install neo4j-client
+neo4j-client -u neo4j iatigraph.eastus.azurecontainer.io:7687
 ```
+
+Inline queries can be run directly from sh commands like this:
+
+```sh
+neo4j-client -u neo4j -p <password> -o result.out -i <filepath>.cyp bolt://iatigraph.eastus.azurecontainer.io:7687
+```
+
+**TODO**: iterate over [CQL-query-oneshot.cql](CQL-query-oneshot.cql), or chunk into separate files in the [/cypher](/cyper) folder to automate population.
