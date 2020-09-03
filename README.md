@@ -31,7 +31,8 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 6. run `python3 Prepare-transaction-csv.py`
 7. cd into data and run `sudo python3 -m http.server 80`. This will server a temporary http server from the data directory, allowing the Neo4J instance to access the files for import.
    * note that port 80 must be exposed for this to work!
-8. Run Neo4J import processes with your chosen instance (see 'Interacting with Neo4J') `neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687` (ideally this is done in a tmux session, as **it takes hours**.)
+8. ~~Run Neo4J import processes with your chosen instance (see 'Interacting with Neo4J') `neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687` (ideally this is done in a tmux session, as **it takes hours**.)~~
+9. 
 
 
 ## Detailed Components

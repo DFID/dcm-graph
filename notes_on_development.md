@@ -37,13 +37,37 @@ Possible explanations:
 
 * Try separate command runs (iterating over different 1-statement cypher files)
 * Try running _from the neo4j box_ having downloaded the CSV files locally to that machine
-* Try creating all of the nodes with their various fields first, and then create relations on in-graph match conditions such as this:
-    ```cypher
-    MATCH (p:Product),(c:Category)
-    WHERE p.categoryID = c.categoryID
-    CREATE (p)-[:PART_OF]->(c)
+    * Start by running `wget -r -np -R "index.html*" http://rsdevbox.eastus.cloudapp.azure.com/` in the `/import` folder, then moving the files in the downloaded directory up to the `/import` directory.
+    * Run the separate chunks in [load-oneshot-local.cyp](load-oneshot-local.cyp) via the browser
+    * Result: this is much, much quicker. The following command created all the publishing relationships in just over a minute (instead of one tenth of it being complete after more than 12 hours):
+    ```cyp
+    :auto USING PERIODIC COMMIT
+    LOAD CSV WITH HEADERS FROM 'file:///0_org_to_activity_relation_list.csv' AS row
+    MATCH (organisation:Organisations {OrgIdentifier: row.reportingOrgIdentifier})
+    MATCH (activity:Activities {ActivityIdentifier: row.activityIatiIdentifier})
+    MERGE (organisation)-[:PUBLISHES]->(activity)
     ```
-    * This may well require a different setup than the current 'live container instance' deployment used on Azure, but it does seem possible to wget through a browser terminal in the Azure Portal. 
+* Attempting this with a remote file for diagnostics... remote file is just as fast. **No need for the wget strategy.**
+* Attempting this with single chunks via terminal... works almost as fast (extra few seconds). **No need to use the console, can be scripted**
+
+
+### Chunking Files
+
+* Chunked files into [cypher/load_chunks](cypher/load_chunks) to be iterated over.
+* Discovered that you need to wait after each transaction is completed for around 10 seconds to avoid confusing the Neo4J instance and causing a halt / dramatic slowdown
+* The 8th chunk causes an out-of-memory error in the container instance used.
+* **TODO** Deploy a bigger instance of Neo4J, or refactor the load to require less RAM.
+
+## General Design Consideration
+
+It would be good to try creating all of the nodes with their various fields first, and then create relations on in-graph match conditions such as this:
+
+```cypher
+MATCH (p:Product),(c:Category)
+WHERE p.categoryID = c.categoryID
+CREATE (p)-[:PART_OF]->(c)
+```
+
 # 2020-09-02
 
 * Clarified process using http.server to surface files for separate Neo4J
