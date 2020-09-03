@@ -23,7 +23,7 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 3. _Optional_ if ssh in a remote box: create a new tmux session and enter into it if you want to ensure that a download / transaction will continue if you're disconnected.
    * `tmux new -s operations`
    * within this window you can run some commands and create a [split screen dashboard](docs/tmux_demo.png)
-   * 'detatch' with `ctrl+B` followed by `d`
+   * 'detach' with `ctrl+B` followed by `d`
    * 'attach' later with `tmux attach -t operations`
 4. Run `sh get_iati.sh`
    * Note that as of the 2nd of September 2019, the activity file is 1.88GB requiring 5 minutes to download at 6.9MB/s and the transaction file is 623MB, requiring 2:45 at the same speed. This is why running from an azure box is preferable, as it leverages Microsoft's punchy down-speed!
