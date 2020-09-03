@@ -71,4 +71,4 @@ Inline queries can be run directly from sh commands like this:
 neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687
 ```
 
-If the file after the `-i` argument is a set of distinct, semi-colon separated cypher commands (as is the case in the file used), this command will iterate over each of them and eventually output a report to the `-o` file. 
+If the file after the `-i` argument is a set of distinct, semi-colon separated cypher commands (as is the case in the file used), this command will iterate over each of them and eventually output a report to the `-o` file.
