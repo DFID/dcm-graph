@@ -1,3 +1,7 @@
+# 2020-09-07
+
+Cracked the import. Moved away from a pre-built container instance, and just installed Neo4J community (3.5.2) on a bare Ubuntu 18 box. Turns out the most reasonable way to stop `08_load.cyp` from crashing the server is to just beef up the RAM. Now the data import at least should take place on a machine with 16GB or more.
+
 # 2020-09-03
 
 ## Results of overnight CLI Run

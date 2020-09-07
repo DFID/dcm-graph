@@ -11,6 +11,7 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 
 * An running instance of Neo4j at version 3.5. This has been tested on a trial instance of the enterprise edition, but may well work on the commercial edition too
 * A separate server or development machine with fast and non-firewalled internet and a LOT of RAM available. The initial python script required 32GB of RAM to avoid killing the process in the most recent testing has been tested using an Azure Ubuntu Box with a download speed. However, if using a remote box you can use a beefy configuration for this step and then downsize the server for subsequent steps.
+* A Neo4J instance with 16GB of RAM or higher (at least for the import - it could be downsized subsequently as long as queries are kept reasonable). 
 * Python3 for processing and serving the CSVs for Neo4J to import.
 * Tmux to run long downloads or processing requests on a remote box without a broken pipe halting the process.
 
@@ -31,8 +32,7 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 6. run `python3 Prepare-transaction-csv.py`
 7. cd into data and run `sudo python3 -m http.server 80`. This will server a temporary http server from the data directory, allowing the Neo4J instance to access the files for import.
    * note that port 80 must be exposed for this to work!
-8. ~~Run Neo4J import processes with your chosen instance (see 'Interacting with Neo4J') `neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cyp bolt://iatigraph.eastus.azurecontainer.io:7687` (ideally this is done in a tmux session, as **it takes hours**.)~~
-9. 
+8. Ensure your Neo4J instance is clean and has the expected login credentials and then run `populate_neo4j.sh` with the remote filenames specified in the *.cyp files that are iterated over.
 
 
 ## Detailed Components
@@ -73,3 +73,26 @@ neo4j-client -u neo4j -p <password> -o data/result.out -i cypher/load-oneshot.cy
 ```
 
 If the file after the `-i` argument is a set of distinct, semi-colon separated cypher commands (as is the case in the file used), this command will iterate over each of them and eventually output a report to the `-o` file.
+
+## Installing Neo4J Community to Remote Server
+
+On a fresh Ubuntu 18 Server with 16GB RAM or higher, run the following:
+
+```sh
+# install java
+sudo add-apt-repository ppa:webupd8team/java -y
+sudo apt-get update -y
+sudo apt-get install openjdk-8-jdk -y
+
+# Get Neo4j packages - see https://debian.neo4j.com/
+wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo apt-key add -
+echo 'deb https://debian.neo4j.com stable 3.5' | sudo tee /etc/apt/sources.list.d/neo4j.list
+sudo apt-get update -y
+
+# Install community edition
+sudo apt-get install neo4j=1:3.5.21 -y
+
+# go to /etc/neo4j and update conf file to allow remote connections...
+# then run `sudo service neo4j restart`
+# then run `service neo4j status and check it's running on 0.0.0.0`
+```
