@@ -96,3 +96,10 @@ sudo apt-get install neo4j=1:3.5.21 -y
 # then run `sudo service neo4j restart`
 # then run `service neo4j status and check it's running on 0.0.0.0`
 ```
+
+To purge the database and start over (useful as deleting nodes is sometimes prohibitive)
+
+```sh
+cd /var/lib/neo4j/data/databases/
+sudo rm -r -f graph.db
+```
