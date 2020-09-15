@@ -103,11 +103,11 @@ To purge the database and start over (useful as deleting nodes is sometimes proh
 cd /var/lib/neo4j/data/databases/
 sudo rm -r -f graph.db
 ```
-### NEO4J HTTPS Setup with OPENSSL Certificate
+### Neo4J HTTPS Setup with OPENSSL Certificate
 
 ```sh
 #############################################
-##### NEO4J VERSION 3.5 AND ABOVE ###########
+##### Neo4J VERSION 3.5 AND ABOVE ###########
 #############################################
 #############################################
 # Go inside folder /var/lib/neo4j/certificates and create a new folder called 'default'
@@ -121,7 +121,7 @@ dbms.ssl.policy.default.private_key=/var/lib/neo4j/certificates/default/private.
 dbms.ssl.policy.default.public_certificate=/var/lib/neo4j/certificates/default/public.crt
 
 #############################################
-##### NEO4J VERSION 4.0 AND ABOVE ###########
+##### Neo4J VERSION 4.0 AND ABOVE ###########
 #############################################
 # Follow below changes for version 4.0+
 # run the following command to generate the necesssary certificates. Please use the dns name that you had used inside your azure vm setup.
