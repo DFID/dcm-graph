@@ -103,3 +103,58 @@ To purge the database and start over (useful as deleting nodes is sometimes proh
 cd /var/lib/neo4j/data/databases/
 sudo rm -r -f graph.db
 ```
+### NEO4J HTTPS SETUP with OPENSSL certificate
+
+```sh
+#############################################
+##### NEO4J VERSION 3.5 AND ABOVE ###########
+#############################################
+#############################################
+# Go inside folder /var/lib/neo4j/certificates and create a new folder called 'default'
+# Go inside folder /var/lib/neo4j/certificates/default and create a new folder called 'revoked'
+# Run the following command to generate the necesssary certificates inside folder 'default'. Please use the dns name that you had used inside your azure vm setup.
+# $ openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
+# Make the following changes inside /etc/neo4j/neo4j.conf
+dbms.ssl.policy.default.base_directory=certificates/default
+dbms.ssl.policy.default.trust_all=true
+dbms.ssl.policy.default.private_key=/var/lib/neo4j/certificates/default/private.key
+dbms.ssl.policy.default.public_certificate=/var/lib/neo4j/certificates/default/public.crt
+
+#############################################
+##### NEO4J VERSION 4.0 AND ABOVE ###########
+#############################################
+# Follow below changes for version 4.0+
+# run the following command to generate the necesssary certificates. Please use the dns name that you had used inside your azure vm setup.
+# $ openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
+# Run the following commands to copy the generated certificates into the neo4j certificates folder
+# $ sudo cp private.key /var/lib/neo4j/certificates/
+# $ sudo cp public.crt /var/lib/neo4j/certificates/
+
+dbms.connector.bolt.enabled=true
+dbms.connector.bolt.tls_level=REQUIRED
+dbms.connector.bolt.listen_address=:7687
+
+# HTTP Connector. There can be zero or one HTTP connectors.
+dbms.connector.http.enabled=true
+dbms.connector.http.listen_address=:7474
+
+# HTTPS Connector. There can be zero or one HTTPS connectors.
+dbms.connector.https.enabled=true
+dbms.connector.https.listen_address=:7473
+
+# Bolt SSL configuration
+dbms.ssl.policy.bolt.enabled=true
+dbms.ssl.policy.bolt.base_directory=certificates
+dbms.ssl.policy.bolt.private_key=/var/lib/neo4j/certificates/private.key
+dbms.ssl.policy.bolt.public_certificate=/var/lib/neo4j/certificates/public.crt
+dbms.ssl.policy.bolt.client_auth=NONE
+dbms.ssl.policy.bolt.trust_all=true
+
+# Https SSL configuration
+dbms.ssl.policy.https.enabled=true
+dbms.ssl.policy.https.base_directory=certificates
+dbms.ssl.policy.https.private_key=/var/lib/neo4j/certificates/private.key
+dbms.ssl.policy.https.public_certificate=/var/lib/neo4j/certificates/public.crt
+dbms.ssl.policy.https.client_auth=NONE
+dbms.ssl.policy.https.trust_all=true
+```
