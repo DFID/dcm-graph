@@ -103,7 +103,7 @@ To purge the database and start over (useful as deleting nodes is sometimes proh
 cd /var/lib/neo4j/data/databases/
 sudo rm -r -f graph.db
 ```
-### NEO4J HTTPS SETUP with OPENSSL certificate
+### NEO4J HTTPS Setup with OPENSSL Certificate
 
 ```sh
 #############################################
