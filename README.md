@@ -76,6 +76,8 @@ If the file after the `-i` argument is a set of distinct, semi-colon separated c
 
 ## Installing Neo4J Community to Remote Server
 
+### Version 3.5
+
 On a fresh Ubuntu 18 Server with 16GB RAM or higher, run the following:
 
 ```sh
@@ -103,6 +105,33 @@ To purge the database and start over (useful as deleting nodes is sometimes proh
 cd /var/lib/neo4j/data/databases/
 sudo rm -r -f graph.db
 ```
+### Version 4.1 and above
+
+On a fresh Ubuntu 18 Server with 16GB RAM or higher, run the following:
+
+```sh
+# Install Java 11
+sudo add-apt-repository -y ppa:openjdk-r/ppa
+sudo apt-get update
+# You are now ready to install Neo4j, which will install Java 11 automatically if it is not already installed. 
+# Note: If you have multiple versions of java installed in your system, you can check the installed versions using the following command
+update-java-alternatives --list
+# Based on the list above, you can select your target java version using the following command
+sudo update-java-alternatives --jre --set <java11name>
+
+# Add Neo4J repository
+wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo apt-key add -
+echo 'deb https://debian.neo4j.com stable latest' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
+sudo apt-get update
+
+# Install Neo4J community edition version 4.1.1
+sudo apt-get install neo4j=1:4.1.1
+
+# go to /etc/neo4j and update conf file to allow remote connections...
+# then run `sudo service neo4j restart`
+# then run `service neo4j status and check it's running on 0.0.0.0`
+```
+
 ### Neo4J HTTPS Setup with OPENSSL Certificate
 
 ```sh
