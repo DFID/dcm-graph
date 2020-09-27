@@ -115,6 +115,7 @@ sudo add-apt-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
 # You are now ready to install Neo4j, which will install Java 11 automatically if it is not already installed. 
 # Note: If you have multiple versions of java installed in your system, you can check the installed versions using the following command
+sudo apt install java-common
 update-java-alternatives --list
 # Based on the list above, you can select your target java version using the following command
 sudo update-java-alternatives --jre --set <java11name>
@@ -142,7 +143,7 @@ sudo apt-get install neo4j=1:4.1.1
 # Go inside folder /var/lib/neo4j/certificates and create a new folder called 'default'
 # Go inside folder /var/lib/neo4j/certificates/default and create a new folder called 'revoked'
 # Run the following command to generate the necesssary certificates inside folder 'default'. Please use the dns name that you had used inside your azure vm setup.
-# $ openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
+# $ sudo openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
 # Make the following changes inside /etc/neo4j/neo4j.conf
 dbms.ssl.policy.default.base_directory=certificates/default
 dbms.ssl.policy.default.trust_all=true
@@ -154,7 +155,7 @@ dbms.ssl.policy.default.public_certificate=/var/lib/neo4j/certificates/default/p
 #############################################
 # Follow below changes for version 4.0+
 # run the following command to generate the necesssary certificates. Please use the dns name that you had used inside your azure vm setup.
-# $ openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
+# $ sudo openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
 # Run the following commands to copy the generated certificates into the neo4j certificates folder
 # $ sudo cp private.key /var/lib/neo4j/certificates/
 # $ sudo cp public.crt /var/lib/neo4j/certificates/
