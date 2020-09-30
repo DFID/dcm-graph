@@ -5,29 +5,29 @@ import os
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 load_dotenv()
-# Prepare the bolt driver
-uri = os.getenv("boltURL")
-driver = GraphDatabase.driver(uri, auth=(os.getenv("neo4jUser"), os.getenv("neo4jPass")))
+# Prepare the bolt driver                               
+# uri = os.getenv("boltURL")
+# driver = GraphDatabase.driver(uri, auth=(os.getenv("neo4jUser"), os.getenv("neo4jPass")))
 
 # Prepare methods for importing data into neo4j db
-def create_orgs(tx, identifier, title):
-    tx.run("CREATE (:Organisations {OrgIdentifier: $identifier, OrgName: $title})", identifier=identifier, title=title)
+# def create_orgs(tx, identifier, title):
+#     tx.run("CREATE (:Organisations {OrgIdentifier: $identifier, OrgName: $title})", identifier=identifier, title=title)
 
-def create_activities(tx, iatiIdentifier, title, reportingOrgTitle, reportingOrgIdentifier):
-    tx.run("CREATE (:Activities {ActivityIdentifier: $iatiIdentifier, ActivityTitle: $title, ReportingOrgTitle: $reportingOrgTitle, ReportingOrgIdentifier: $reportingOrgIdentifier})", iatiIdentifier=iatiIdentifier, title=title,  reportingOrgTitle=reportingOrgTitle, reportingOrgIdentifier=reportingOrgIdentifier)
+# def create_activities(tx, iatiIdentifier, title, reportingOrgTitle, reportingOrgIdentifier):
+#     tx.run("CREATE (:Activities {ActivityIdentifier: $iatiIdentifier, ActivityTitle: $title, ReportingOrgTitle: $reportingOrgTitle, ReportingOrgIdentifier: $reportingOrgIdentifier})", iatiIdentifier=iatiIdentifier, title=title,  reportingOrgTitle=reportingOrgTitle, reportingOrgIdentifier=reportingOrgIdentifier)
 
-def create_parent_to_child_relation(tx, reportedIdentifier, relatedIdentifier):
-    tx.run("MATCH (reportedActivity:Activities {ActivityIdentifier: $reportedIdentifier}) MATCH (relatedActivity:Activities {ActivityIdentifier: $relatedIdentifier}) MERGE (reportedActivity)-[:PARENT_OF]->(relatedActivity)", reportedIdentifier=reportedIdentifier, relatedIdentifier=relatedIdentifier)
+# def create_parent_to_child_relation(tx, reportedIdentifier, relatedIdentifier):
+#     tx.run("MATCH (reportedActivity:Activities {ActivityIdentifier: $reportedIdentifier}) MATCH (relatedActivity:Activities {ActivityIdentifier: $relatedIdentifier}) MERGE (reportedActivity)-[:PARENT_OF]->(relatedActivity)", reportedIdentifier=reportedIdentifier, relatedIdentifier=relatedIdentifier)
 
-def create_parti_org_relations(tx, participatingOrgRef, activityId, participatingOrgRole, participatingOrgActivityId):
-    tx.run("MATCH (organisation:Organisations {OrgIdentifier: $participatingOrgRef}) MATCH (activity:Activities {ActivityIdentifier: $activityId}) MERGE (activity)-[:DECLARES_PARTICIPATING_ORG {role:$participatingOrgRole}]->(organisation)", participatingOrgRef=participatingOrgRef, activityId=activityId, participatingOrgRole=participatingOrgRole)
-    tx.run("MATCH (activity:Activities {ActivityIdentifier: $activityId}) MATCH (participating_activity:Activities {ActivityIdentifier: $participatingOrgActivityId}) WHERE NOT $participatingOrgActivityId = $activityId MERGE (activity)-[:DECLARES_PARTICIPATING_ACTIVITY {role:$participatingOrgRole}]->(participating_activity)", activityId=activityId, participatingOrgActivityId=participatingOrgActivityId, participatingOrgRole=participatingOrgRole)
+# def create_parti_org_relations(tx, participatingOrgRef, activityId, participatingOrgRole, participatingOrgActivityId):
+#     tx.run("MATCH (organisation:Organisations {OrgIdentifier: $participatingOrgRef}) MATCH (activity:Activities {ActivityIdentifier: $activityId}) MERGE (activity)-[:DECLARES_PARTICIPATING_ORG {role:$participatingOrgRole}]->(organisation)", participatingOrgRef=participatingOrgRef, activityId=activityId, participatingOrgRole=participatingOrgRole)
+#     tx.run("MATCH (activity:Activities {ActivityIdentifier: $activityId}) MATCH (participating_activity:Activities {ActivityIdentifier: $participatingOrgActivityId}) WHERE NOT $participatingOrgActivityId = $activityId MERGE (activity)-[:DECLARES_PARTICIPATING_ACTIVITY {role:$participatingOrgRole}]->(participating_activity)", activityId=activityId, participatingOrgActivityId=participatingOrgActivityId, participatingOrgRole=participatingOrgRole)
 
-def create_index(tx):
-    tx.run("create index on :Activities(ActivityIdentifier)")
-    tx.run("create index on :Organisations(OrgIdentifier)")
+# def create_index(tx):
+#     tx.run("create index on :Activities(ActivityIdentifier)")
+#     tx.run("create index on :Organisations(OrgIdentifier)")
 
-os.chdir('data/')
+#os.chdir('data/')
 
 print("Processing started..")
 activities_from_json = {}
@@ -46,6 +46,8 @@ parent_to_child_relation = []
 child_to_parent_relation = []
 child_to_child_relation = []
 participating_org_of = []
+p_declares_parti_org = []
+p_declares_parti_activity = []
 print("Starting parse of each activity..")
 count = 0
 for activity in activities_from_json['response']['docs']:
@@ -54,12 +56,13 @@ for activity in activities_from_json['response']['docs']:
     tempOrgTitle = activity['reporting_org_narrative'][0] if 'reporting_org_narrative' in activity.keys() else None
     tempOrgIdentifier = activity['reporting_org_ref'] if 'reporting_org_ref' in activity.keys() else None
     reporting_organisation_dict = {
+        "organisationIdentifier:ID": tempOrgIdentifier,
         "organisationTitle": tempOrgTitle,
-        "organisationIdentifier": tempOrgIdentifier
+        ":LABEL": "Organisations"
     }
     # Run bolt query to push data to the neo4j db
-    with driver.session() as session:
-        session.write_transaction(create_orgs, tempOrgIdentifier, tempOrgTitle)
+    # with driver.session() as session:
+    #     session.write_transaction(create_orgs, tempOrgIdentifier, tempOrgTitle)
     # Add the reporting_org data to the main organisations array
     organisation_list.append(reporting_organisation_dict.copy())
 
@@ -69,14 +72,15 @@ for activity in activities_from_json['response']['docs']:
     tempActivityReportingOrgTitle = activity['reporting_org_narrative'][0] if 'reporting_org_narrative' in activity.keys() else None
     tempActivityReportingOrgIdent = activity['reporting_org_ref'] if 'reporting_org_ref' in activity.keys() else None
     activity_dict = {
+        "iatiIdentifier:ID": tempActivityIdentifier,
         "title": tempActivityTitle,
-        "iatiIdentifier": tempActivityIdentifier,
         "reportingOrgTitle": tempActivityReportingOrgTitle,
-        "reportingOrgIdentifier": tempActivityReportingOrgIdent
+        "reportingOrgIdentifier": tempActivityReportingOrgIdent,
+        ":LABEL": "Activities"
     }
     # Run bolt query to push data to the neo4j db
-    with driver.session() as session:
-        session.write_transaction(create_activities, tempActivityIdentifier, tempActivityTitle, tempActivityReportingOrgTitle, tempActivityReportingOrgIdent)
+    # with driver.session() as session:
+    #     session.write_transaction(create_activities, tempActivityIdentifier, tempActivityTitle, tempActivityReportingOrgTitle, tempActivityReportingOrgIdent)
     # Add the activity to the activity list
     activity_list.append(activity_dict.copy())
 
@@ -97,15 +101,16 @@ for activity in activities_from_json['response']['docs']:
         for index, related_activity in enumerate(activity['related_activity_ref'], start=0):
             if activity['related_activity_type'][index] == '2':
                 activity_to_activity_relation_dict = {
-                    "reportedIatiIdentifier": activity['iati_identifier'],
-                    "relatedIatiIdentifier": related_activity
+                    ":START_ID": activity['iati_identifier'],
+                    ":END_ID": related_activity,
+                    ":TYPE": "PARENT_OF"
                     # "relationship": activity['related_activity_type'][index]
                 }
                 tempIdentifier = activity['iati_identifier'] if activity['iati_identifier'] in locals() else ""
                 tempRelatedIatiIdentifier = related_activity if related_activity in locals() else ""
                 # Run bolt query to push data to the neo4j db
-                with driver.session() as session:
-                    session.write_transaction(create_parent_to_child_relation, tempIdentifier, tempRelatedIatiIdentifier)
+                # with driver.session() as session:
+                #     session.write_transaction(create_parent_to_child_relation, tempIdentifier, tempRelatedIatiIdentifier)
                 parent_to_child_relation.append(
                     activity_to_activity_relation_dict)
             elif activity['related_activity_type'][index] == '1':
@@ -137,9 +142,24 @@ for activity in activities_from_json['response']['docs']:
                 "participatingOrgActivityId": part_json['activity_id'],
                 "participatingOrgRole": part_json['role']['code']
             }
-            with driver.session() as session:
-                    session.write_transaction(create_parti_org_relations, part_json['ref'], activity['iati_identifier'], part_json['role']['code'], part_json['activity_id'])
-            participating_org_of.append(participating_org_of_dict.copy())
+            p_dict = {
+                ":START_ID": activity['iati_identifier'],
+                "role": part_json['role']['code'],
+                ":END_ID": part_json['ref'],
+                ":TYPE": "DECLARES_PARTICIPATING_ORG"
+            }
+            p_declares_parti_org.append(p_dict.copy())
+            if part_json['activity_id'] != activity['iati_identifier']:
+                p2_dict = {
+                    ":START_ID": activity['iati_identifier'],
+                    "role": part_json['role']['code'],
+                    ":END_ID": part_json['activity_id'],
+                    ":TYPE": "DECLARES_PARTICIPATING_ACTIVITY"
+                }
+                p_declares_parti_activity.append(p2_dict.copy())
+            # with driver.session() as session:
+            #         session.write_transaction(create_parti_org_relations, part_json['ref'], activity['iati_identifier'], part_json['role']['code'], part_json['activity_id'])
+            #participating_org_of.append(participating_org_of_dict.copy())
     print("Processing of activity: ", count, "completed.")
     count = count + 1
 
@@ -153,28 +173,34 @@ parent_to_child_relation_df = pd.DataFrame(parent_to_child_relation)
 child_to_parent_relation_df = pd.DataFrame(child_to_parent_relation)
 ##child_to_child_relation_df = pd.DataFrame(child_to_child_relation)
 participating_org_of_df = pd.DataFrame(participating_org_of)
-
+p_declares_parti_activity_df = pd.DataFrame(p_declares_parti_activity)
+p_declares_parti_org_df = pd.DataFrame(p_declares_parti_org)
 print("Sorting and cleaning duplicates..")
 # Sort and clear out all the duplicates
-organisation_list_df.sort_values("organisationIdentifier", inplace=True)
+organisation_list_df.sort_values("organisationIdentifier:ID", inplace=True)
 organisation_list_df.drop_duplicates(keep="first", inplace=True)
 
-activity_list_df.sort_values("iatiIdentifier", inplace=True)
+activity_list_df.sort_values("iatiIdentifier:ID", inplace=True)
 activity_list_df.drop_duplicates(keep="first", inplace=True)
 
 ##activity_published_by_df.sort_values("activityIatiIdentifier", inplace=True)
 ##activity_published_by_df.drop_duplicates(keep="first", inplace=True)
 
-parent_to_child_relation_df.sort_values("reportedIatiIdentifier", inplace=True)
+parent_to_child_relation_df.sort_values(":START_ID", inplace=True)
 parent_to_child_relation_df.drop_duplicates(keep="first", inplace=True)
-child_to_parent_relation_df.sort_values("reportedIatiIdentifier", inplace=True)
-child_to_parent_relation_df.drop_duplicates(keep="first", inplace=True)
+# child_to_parent_relation_df.sort_values("reportedIatiIdentifier", inplace=True)
+# child_to_parent_relation_df.drop_duplicates(keep="first", inplace=True)
 ##child_to_child_relation_df.sort_values("reportedIatiIdentifier", inplace=True)
 ##child_to_child_relation_df.drop_duplicates(keep="first", inplace=True)
 
-participating_org_of_df.sort_values("participatingOrgRef", inplace=True)
-participating_org_of_df.drop_duplicates(keep="first", inplace=True)
+# participating_org_of_df.sort_values("participatingOrgRef", inplace=True)
+# participating_org_of_df.drop_duplicates(keep="first", inplace=True)
 
+p_declares_parti_activity_df.sort_values(":START_ID", inplace=True)
+p_declares_parti_activity_df.drop_duplicates(keep="first", inplace=True)
+
+p_declares_parti_org_df.sort_values(":START_ID", inplace=True)
+p_declares_parti_org_df.drop_duplicates(keep="first", inplace=True)
 print("Building the relevant CSVs..")
 # Publish data in csv
 organisation_list_df.to_csv(
@@ -184,12 +210,18 @@ activity_list_df.to_csv(r'0_activity_list.csv', index=None, header=True)
 ##    r'0_org_to_activity_relation_list.csv', index=None, header=True)
 parent_to_child_relation_df.to_csv(
     r'0_parent_to_child_relation_list.csv', index=None, header=True)
-child_to_parent_relation_df.to_csv(
-    r'0_child_to_parent_relation_list.csv', index=None, header=True)
+# child_to_parent_relation_df.to_csv(
+#     r'0_child_to_parent_relation_list.csv', index=None, header=True)
 ##child_to_child_relation_df.to_csv(
 ##    r'0_child_to_child_relation_list.csv', index=None, header=True)
-participating_org_of_df.to_csv(
-    r'0_activity_to_participating_org_relation_list.csv', index=None, header=True)
+# participating_org_of_df.to_csv(
+#     r'0_activity_to_participating_org_relation_list.csv', index=None, header=True)
+
+p_declares_parti_activity_df.to_csv(
+    r'0_declare_parti_activity.csv', index=None, header=True)
+
+p_declares_parti_org_df.to_csv(
+    r'0_declare_parti_org.csv', index=None, header=True)
 
 # Load transaction data into the neo4j db
 # Create necessary functions
@@ -230,13 +262,13 @@ transaction_downrefs.to_csv(
 #for d in transaction_uprefs.index:
 #        print (transaction_uprefs['iati_identifier'][d],' ---- ', transaction_uprefs['transaction_provider_org_ref'][d])
 
-for i in transaction_uprefs.index:
-    with driver.session() as session:
-        session.write_transaction(process_upref_transactions, transaction_uprefs['transaction_provider_org_ref'][i], transaction_uprefs['iati_identifier'][i], transaction_uprefs['transaction_provider_org_provider_activity_id'][i])
+# for i in transaction_uprefs.index:
+#     with driver.session() as session:
+#         session.write_transaction(process_upref_transactions, transaction_uprefs['transaction_provider_org_ref'][i], transaction_uprefs['iati_identifier'][i], transaction_uprefs['transaction_provider_org_provider_activity_id'][i])
 
-for i in transaction_downrefs.index:
-    with driver.session() as session:
-        session.write_transaction(process_downref_transactions, transaction_downrefs['transaction_receiver_org_ref'][i], transaction_downrefs['iati_identifier'][i], transaction_downrefs['transaction_receiver_org_receiver_activity_id'][i])
+# for i in transaction_downrefs.index:
+#     with driver.session() as session:
+#         session.write_transaction(process_downref_transactions, transaction_downrefs['transaction_receiver_org_ref'][i], transaction_downrefs['iati_identifier'][i], transaction_downrefs['transaction_receiver_org_receiver_activity_id'][i])
 
 
 driver.close()
