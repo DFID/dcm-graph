@@ -226,13 +226,13 @@ p_declares_parti_org_df.to_csv(
 # Load transaction data into the neo4j db
 # Create necessary functions
 
-def process_downref_transactions(tx, transaction_receiver_org_ref, iati_identifier, transaction_receiver_org_receiver_activity_id):
-    tx.run("MATCH (organisation:Organisations {OrgIdentifier: $transaction_receiver_org_ref}) MATCH (activity:Activities {ActivityIdentifier: $iati_identifier}) MERGE (activity)-[:DECLARES_TRANSACTION_RECEIVER_ORG]->(organisation)", transaction_receiver_org_ref=transaction_receiver_org_ref, iati_identifier=iati_identifier)
-    tx.run("MATCH (reportedActivity:Activities {ActivityIdentifier: $iati_identifier}) MATCH (relatedActivity:Activities {ActivityIdentifier: $transaction_receiver_org_receiver_activity_id}) MERGE (reportedActivity)-[:DECLARES_TRANSACTION_RECEIVER_ACTIVITY]->(relatedActivity)", iati_identifier=iati_identifier, transaction_receiver_org_receiver_activity_id=transaction_receiver_org_receiver_activity_id)
+# def process_downref_transactions(tx, transaction_receiver_org_ref, iati_identifier, transaction_receiver_org_receiver_activity_id):
+#     tx.run("MATCH (organisation:Organisations {OrgIdentifier: $transaction_receiver_org_ref}) MATCH (activity:Activities {ActivityIdentifier: $iati_identifier}) MERGE (activity)-[:DECLARES_TRANSACTION_RECEIVER_ORG]->(organisation)", transaction_receiver_org_ref=transaction_receiver_org_ref, iati_identifier=iati_identifier)
+#     tx.run("MATCH (reportedActivity:Activities {ActivityIdentifier: $iati_identifier}) MATCH (relatedActivity:Activities {ActivityIdentifier: $transaction_receiver_org_receiver_activity_id}) MERGE (reportedActivity)-[:DECLARES_TRANSACTION_RECEIVER_ACTIVITY]->(relatedActivity)", iati_identifier=iati_identifier, transaction_receiver_org_receiver_activity_id=transaction_receiver_org_receiver_activity_id)
 
-def process_upref_transactions(tx, transaction_provider_org_ref, iati_identifier, transaction_provider_org_provider_activity_id):
-    tx.run("MATCH (organisation:Organisations {OrgIdentifier: $transaction_provider_org_ref}) MATCH (activity:Activities {ActivityIdentifier: $iati_identifier}) MERGE (activity)-[:DECLARES_TRANSACTION_PROVIDER_ORG]->(organisation)", transaction_provider_org_ref=transaction_provider_org_ref, iati_identifier=iati_identifier)
-    tx.run("MATCH (reportedActivity:Activities {ActivityIdentifier: $iati_identifier}) MATCH (relatedActivity:Activities {ActivityIdentifier: $transaction_provider_org_provider_activity_id}) MERGE (reportedActivity)-[:DECLARES_TRANSACTION_PROVIDER_ACTIVITY]->(relatedActivity)", iati_identifier=iati_identifier, transaction_provider_org_provider_activity_id=transaction_provider_org_provider_activity_id)
+# def process_upref_transactions(tx, transaction_provider_org_ref, iati_identifier, transaction_provider_org_provider_activity_id):
+#     tx.run("MATCH (organisation:Organisations {OrgIdentifier: $transaction_provider_org_ref}) MATCH (activity:Activities {ActivityIdentifier: $iati_identifier}) MERGE (activity)-[:DECLARES_TRANSACTION_PROVIDER_ORG]->(organisation)", transaction_provider_org_ref=transaction_provider_org_ref, iati_identifier=iati_identifier)
+#     tx.run("MATCH (reportedActivity:Activities {ActivityIdentifier: $iati_identifier}) MATCH (relatedActivity:Activities {ActivityIdentifier: $transaction_provider_org_provider_activity_id}) MERGE (reportedActivity)-[:DECLARES_TRANSACTION_PROVIDER_ACTIVITY]->(relatedActivity)", iati_identifier=iati_identifier, transaction_provider_org_provider_activity_id=transaction_provider_org_provider_activity_id)
 
 transactions = pd.read_csv('transactions.csv')
 transaction_uprefs = transactions.pivot_table(
@@ -258,17 +258,56 @@ transaction_uprefs.to_csv(
     r'0_transaction_uprefs_list.csv', index=None, header=True)
 transaction_downrefs.to_csv(
     r'0_transaction_downrefs_list.csv', index=None, header=True)
+transaction_declares_receiver_org_arr = []
+transaction_declares_receiver_activity_arr = []
+transaction_declares_provider_org_arr = []
+transaction_declares_provider_activity_arr = []
+print("Processing of transaction downrefs..")
+for i in transaction_downrefs.index:
+    tro_dict = {
+        ":START_ID": transaction_downrefs['iati_identifier'][i],
+        #"role": part_json['role']['code'],
+        ":END_ID": transaction_downrefs['transaction_receiver_org_ref'][i],
+        ":TYPE": "DECLARES_TRANSACTION_RECEIVER_ORG"
+    }
+    transaction_declares_receiver_org_arr.append(tro_dict.copy())
+    tra_dict = {
+        ":START_ID": transaction_downrefs['iati_identifier'][i],
+        #"role": part_json['role']['code'],
+        ":END_ID": transaction_downrefs['transaction_receiver_org_receiver_activity_id'][i],
+        ":TYPE": "DECLARES_TRANSACTION_RECEIVER_ACTIVITY"
+    }
+    transaction_declares_receiver_activity_arr.append(tra_dict.copy())
+print("Processing of transaction uprefs....")
+for i in transaction_uprefs.index:
+    tpo_dict = {
+        ":START_ID": transaction_uprefs['iati_identifier'][i],
+        #"role": part_json['role']['code'],
+        ":END_ID": transaction_uprefs['transaction_provider_org_ref'][i],
+        ":TYPE": "DECLARES_TRANSACTION_PROVIDER_ORG"
+    }
+    transaction_declares_provider_org_arr.append(tpo_dict.copy())
+    tpa_dict = {
+        ":START_ID": transaction_uprefs['iati_identifier'][i],
+        #"role": part_json['role']['code'],
+        ":END_ID": transaction_uprefs['transaction_provider_org_provider_activity_id'][i],
+        ":TYPE": "DECLARES_TRANSACTION_PROVIDER_ACTIVITY"
+    }
+    transaction_declares_provider_activity_arr.append(tpa_dict.copy())
 
-#for d in transaction_uprefs.index:
-#        print (transaction_uprefs['iati_identifier'][d],' ---- ', transaction_uprefs['transaction_provider_org_ref'][d])
+transaction_declares_receiver_org_arr.sort_values(":START_ID", inplace=True)
+transaction_declares_receiver_activity_arr.sort_values(":START_ID", inplace=True)
+transaction_declares_provider_org_arr.sort_values(":START_ID", inplace=True)
+transaction_declares_provider_activity_arr.sort_values(":START_ID", inplace=True)
 
-# for i in transaction_uprefs.index:
-#     with driver.session() as session:
-#         session.write_transaction(process_upref_transactions, transaction_uprefs['transaction_provider_org_ref'][i], transaction_uprefs['iati_identifier'][i], transaction_uprefs['transaction_provider_org_provider_activity_id'][i])
+transaction_declares_receiver_org_arr.to_csv(
+    r'0_declared_receiver_org_list.csv', index=None, header=True)
 
-# for i in transaction_downrefs.index:
-#     with driver.session() as session:
-#         session.write_transaction(process_downref_transactions, transaction_downrefs['transaction_receiver_org_ref'][i], transaction_downrefs['iati_identifier'][i], transaction_downrefs['transaction_receiver_org_receiver_activity_id'][i])
+transaction_declares_receiver_activity_arr.to_csv(
+    r'0_declared_receiver_activity_list.csv', index=None, header=True)
 
+transaction_declares_provider_org_arr.to_csv(
+    r'0_declared_provider_org_list.csv', index=None, header=True)
 
-driver.close()
+transaction_declares_provider_activity_arr.to_csv(
+    r'0_declared_provider_activity_list.csv', index=None, header=True)
