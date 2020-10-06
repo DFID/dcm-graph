@@ -133,6 +133,17 @@ sudo apt-get install neo4j=1:4.1.1
 # then run `service neo4j status and check it's running on 0.0.0.0`
 ```
 
+To purge the database and start over (useful as deleting nodes is sometimes prohibitive)
+
+```sh
+cd /var/lib/neo4j/data/databases/
+sudo rm -rf neo4j
+```
+```sh
+cd /var/lib/neo4j/data/transactions/
+sudo rm -rf neo4j
+```
+
 ### Neo4J HTTPS Setup with OPENSSL Certificate
 
 ```sh
