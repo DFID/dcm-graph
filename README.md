@@ -9,31 +9,41 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 
 ### Prerequisites and Assumptions
 
-* An running instance of Neo4j at version 3.5. This has been tested on a trial instance of the enterprise edition, but may well work on the commercial edition too
+* A running instance of Neo4j at version 4.1 or greater. This has been tested on a trial instance of the enterprise edition, but may well work on the commercial edition too
 * A separate server or development machine with fast and non-firewalled internet and a LOT of RAM available. The initial python script required 32GB of RAM to avoid killing the process in the most recent testing has been tested using an Azure Ubuntu Box with a download speed. However, if using a remote box you can use a beefy configuration for this step and then downsize the server for subsequent steps.
 * A Neo4J instance with 16GB of RAM or higher (at least for the import - it could be downsized subsequently as long as queries are kept reasonable). 
 * Python3 for processing and serving the CSVs for Neo4J to import.
 * Tmux to run long downloads or processing requests on a remote box without a broken pipe halting the process.
 
-### High-Level Process
+### High-Level Process for version 4.1 and above
 
 > This assumes a fresh Ubuntu 18 box
 
 1. SSH or use VS Code's Remote Extension to enter your desired environment, clone this repository, and cd into it.
-2. Run `sudo sh setup.sh` to install requirements.
+2. Run `sudo sh setup4.sh` to install requirements.
+3. Update the .env file to enter the default neo4j BOLTAPI URL and credentials (default user name and password is neo4j)
+4. Run `sudo sh process_and_import_to_neo4j.sh`
+5. Run `sudo service neo4j start` to start the neo4j server
+6. Run `python3 scripts/create-neo4jdb-indexes.py` which will create the indexes based on the populated neo4j instance
+
+### High-Level Process for version 3.5
+
+> This assumes a fresh Ubuntu 18 box
+
+1. SSH or use VS Code's Remote Extension to enter your desired environment, clone this repository, and cd into it.
+2. Run `sudo sh setup3.sh` to install requirements.
 3. _Optional_ if ssh in a remote box: create a new tmux session and enter into it if you want to ensure that a download / transaction will continue if you're disconnected.
    * `tmux new -s operations`
    * within this window you can run some commands and create a [split screen dashboard](docs/tmux_demo.png)
    * 'detach' with `ctrl+B` followed by `d`
    * 'attach' later with `tmux attach -t operations`
-4. Run `sh get_iati.sh`
+4. Run `sh scrpts/get_iati.sh`
    * Note that as of the 2nd of September 2019, the activity file is 1.88GB requiring 5 minutes to download at 6.9MB/s and the transaction file is 623MB, requiring 2:45 at the same speed. This is why running from an azure box is preferable, as it leverages Microsoft's punchy down-speed!
-5. run `python3 Import-and-prepare-activity-organisation-data.py` (see 'IATI Data' below)
-6. run `python3 Prepare-transaction-csv.py`
+5. run `python3 old_scripts/Import-and-prepare-activity-organisation-data.py` (see 'IATI Data' below)
+6. run `python3 old_scripts/Prepare-transaction-csv.py`
 7. cd into data and run `sudo python3 -m http.server 80`. This will server a temporary http server from the data directory, allowing the Neo4J instance to access the files for import.
    * note that port 80 must be exposed for this to work!
-8. Ensure your Neo4J instance is clean and has the expected login credentials and then run `populate_neo4j.sh` with the remote filenames specified in the *.cyp files that are iterated over.
-
+8. Ensure your Neo4J instance is clean and has the expected login credentials and then run `old_scripts/populate_neo4j.sh` with the remote filenames specified in the *.cyp files that are iterated over.
 
 ## Detailed Components
 
