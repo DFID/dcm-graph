@@ -23,8 +23,10 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 2. Run `sudo sh setup4.sh` to install requirements.
 3. Update the .env file to enter the default neo4j BOLTAPI URL and credentials (default user name and password is neo4j)
 4. Run `sudo sh process_and_import_to_neo4j.sh`
-5. Run `sudo service neo4j start` to start the neo4j server
-6. Run `python3 scripts/create-neo4jdb-indexes.py` which will create the indexes based on the populated neo4j instance
+5. Please follow the neo4j.conf file changes for adding SSL support at the bottom of this README file. (This is mandatory else your scripts will not properly run)
+6. Make sure you have whitelisted ports 7473 and 7687 for your server.
+7. Run `sudo service neo4j start` to start the neo4j server
+8. Run `python3 scripts/create-neo4jdb-indexes.py` which will create the indexes based on the populated neo4j instance
 
 ### High-Level Process for version 3.5
 
