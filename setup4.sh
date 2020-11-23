@@ -10,5 +10,6 @@ apt install tmux -y
 apt install python3-pip -y
 pip3 install -U python-dotenv
 pip3 install pandas
+pip3 install neo4j
 cd /var/lib/neo4j/certificates/
 openssl req -newkey rsa:2048 -nodes -keyout private.key -x509 -days 365 -out public.crt
