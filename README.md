@@ -22,6 +22,7 @@ Our main goal for this project is to create a prototype Graph Database of Intern
 1. SSH or use VS Code's Remote Extension to enter your desired environment, clone this repository, and cd into it.
 2. Run `sudo sh setup4.sh` to install requirements.
 3. Update the .env file to enter the default neo4j BOLTAPI URL and credentials (default user name and password is neo4j)
+BOLTAPI with SSH enabled EXAMPLE: neo4j+ssc://YOUR_NEO4J_SERVER_NAME_GOES_HERE:7687
 4. Run `sudo sh process_and_import_to_neo4j.sh`
 5. Please follow the [neo4j.conf file changes for version 4.0 and above](#neo4j-https-setup-with-openssl-certificate) for adding SSL support at the bottom of this README file. (This is mandatory else your scripts will not properly run)
 6. Make sure you have whitelisted ports 7473 and 7687 for your server.
